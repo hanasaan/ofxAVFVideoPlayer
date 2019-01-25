@@ -44,7 +44,7 @@ public:
     ~ofxAVFVideoPlayer();
     
     bool                load(string path) override;
-    bool                isInitialized() const override { return isLoaded(); }
+    bool                isInitialized() const override { return bInitialized; }
     
     void                closeMovie();
     void                close() override;
