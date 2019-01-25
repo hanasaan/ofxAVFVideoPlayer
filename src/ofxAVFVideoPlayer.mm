@@ -26,6 +26,7 @@ ofxAVFVideoPlayer::ofxAVFVideoPlayer()
     
     bTheFutureIsNow = false;
     bShouldLoadAudio = true; // maybe: change previous default behaviour: explicitly wanting to load audio
+    bInternalPixelBufferAsYuv422 = false;
 }
 
 //--------------------------------------------------------------
@@ -35,7 +36,7 @@ ofxAVFVideoPlayer::~ofxAVFVideoPlayer()
 }
 
 //--------------------------------------------------------------
-bool ofxAVFVideoPlayer::loadMovie(string path)
+bool ofxAVFVideoPlayer::load(string path)
 {
 
     if (bInitialized) {
@@ -48,7 +49,8 @@ bool ofxAVFVideoPlayer::loadMovie(string path)
     [moviePlayer setUseAlpha:(pixelFormat == OF_PIXELS_RGBA)];
     [moviePlayer setUseTexture:YES];
     [moviePlayer setShouldLoadAudio:bShouldLoadAudio];
-    
+    [moviePlayer setYUV422:bInternalPixelBufferAsYuv422];
+
     bTheFutureIsNow = moviePlayer.theFutureIsNow;
 
     if (Poco::icompare(path.substr(0, 7), "http://")  == 0 ||
@@ -161,7 +163,7 @@ void ofxAVFVideoPlayer::stop()
 }
 
 //--------------------------------------------------------------
-bool ofxAVFVideoPlayer::isFrameNew()
+bool ofxAVFVideoPlayer::isFrameNew() const
 {
     return bNewFrame;
 }
@@ -215,10 +217,10 @@ float * ofxAVFVideoPlayer::getAllAmplitudes()
 }
 
 //--------------------------------------------------------------
-unsigned char * ofxAVFVideoPlayer::getPixels()
+unsigned char * ofxAVFVideoPlayer::getData()
 {
     if (bTheFutureIsNow) {
-        return getPixelsRef().getPixels();
+        return getPixelsRef().getData();
     }
     
     if (!moviePlayer || ![moviePlayer isLoaded] || !bInitialized) return NULL;
@@ -227,7 +229,7 @@ unsigned char * ofxAVFVideoPlayer::getPixels()
         fbo.readToPixels(pixels);
         bHavePixelsChanged = false; // Don't read pixels until next update() is called
     }
-    return pixels.getPixels();
+    return pixels.getData();
 }
 
 //--------------------------------------------------------------
@@ -251,6 +253,17 @@ ofPixelsRef ofxAVFVideoPlayer::getPixelsRef()
     
     return pixels;
 }
+
+ofPixels& ofxAVFVideoPlayer::getPixels()
+{
+    return getPixelsRef();
+}
+
+const ofPixels& ofxAVFVideoPlayer::getPixels() const
+{
+    return pixels;
+}
+
 
 //--------------------------------------------------------------
 ofTexture* ofxAVFVideoPlayer::getTexture()
@@ -289,7 +302,7 @@ bool ofxAVFVideoPlayer::isLoading()
 }
 
 //--------------------------------------------------------------
-bool ofxAVFVideoPlayer::isLoaded()
+bool ofxAVFVideoPlayer::isLoaded() const
 {
     return bInitialized;
 }
@@ -322,7 +335,7 @@ bool ofxAVFVideoPlayer::errorLoading()
 }
 
 //--------------------------------------------------------------
-bool ofxAVFVideoPlayer::isPlaying()
+bool ofxAVFVideoPlayer::isPlaying() const
 {
     return moviePlayer && [moviePlayer isPlaying];
 }
@@ -370,7 +383,7 @@ int ofxAVFVideoPlayer::getTotalNumFrames()
 }
 
 //--------------------------------------------------------------
-bool ofxAVFVideoPlayer::isPaused()
+bool ofxAVFVideoPlayer::isPaused() const
 {
     return moviePlayer && [moviePlayer isPaused];
 }
@@ -474,7 +487,7 @@ void ofxAVFVideoPlayer::setSpeed(float speed)
 bool ofxAVFVideoPlayer::setPixelFormat(ofPixelFormat newPixelFormat)
 {
     if (newPixelFormat != OF_PIXELS_RGB && newPixelFormat != OF_PIXELS_RGBA) {
-        ofLogWarning("ofxAVFVideoPlayer::setPixelFormat") << "Pixel format " << newPixelFormat << " is not supported.";
+        ofLogWarning("ofxAVFVideoPlayer::setPixelFormat") << "Pixel format " << (int)newPixelFormat << " is not supported.";
         return false;
     }
     
@@ -483,14 +496,14 @@ bool ofxAVFVideoPlayer::setPixelFormat(ofPixelFormat newPixelFormat)
         // If we already have a movie loaded we need to reload
         // the movie with the new settings correctly allocated.
         if (isLoaded()) {
-            loadMovie(moviePath);
+            load(moviePath);
         }
     }
     return true;
 }
 
 //--------------------------------------------------------------
-ofPixelFormat ofxAVFVideoPlayer::getPixelFormat()
+ofPixelFormat ofxAVFVideoPlayer::getPixelFormat() const
 {
     return pixelFormat;
 }
@@ -523,13 +536,13 @@ void ofxAVFVideoPlayer::draw(float x, float y, float w, float h)
 }
 
 //--------------------------------------------------------------
-float ofxAVFVideoPlayer::getWidth()
+float ofxAVFVideoPlayer::getWidth() const
 {
     return moviePlayer.width;
 }
 
 //--------------------------------------------------------------
-float ofxAVFVideoPlayer::getHeight()
+float ofxAVFVideoPlayer::getHeight() const
 {
     return moviePlayer.height;
 }
@@ -551,6 +564,18 @@ void ofxAVFVideoPlayer::previousFrame()
 {
     
 }
+
+
+void ofxAVFVideoPlayer::setInternalPixelBufferAsYuv422(bool b)
+{
+    bInternalPixelBufferAsYuv422 = b;
+}
+
+bool ofxAVFVideoPlayer::isInternalPixelBufferAsYuv422() const
+{
+    return [moviePlayer isYUV422];
+}
+
 
 //--------------------------------------------------------------
 void ofxAVFVideoPlayer::updateTexture()

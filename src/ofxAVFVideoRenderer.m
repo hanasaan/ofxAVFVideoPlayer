@@ -13,6 +13,7 @@
 
 - (void)playerItemDidReachEnd:(NSNotification *) notification;
 - (NSDictionary *)pixelBufferAttributes;
+- (NSDictionary *)pixelBufferAttributesYUV422;
 - (void)render;
 
 @property (nonatomic, retain) AVPlayerItem * playerItem;
@@ -36,6 +37,7 @@
 @synthesize bAudioLoaded = _bAudioLoaded;
 @synthesize bPaused = _bPaused;
 @synthesize bMovieDone = _bMovieDone;
+@synthesize bYUV422 = _bYUV422;
 
 @synthesize frameRate = _frameRate;
 @synthesize playbackRate = _playbackRate;
@@ -65,6 +67,7 @@ int count = 0;
         _bAudioLoaded = NO;
         _bPaused = NO;
         _bMovieDone = NO;
+        _bYUV422 = NO;
         
         _useTexture = YES;
         _useAlpha = NO;
@@ -85,6 +88,17 @@ int count = 0;
              (NSString *)kCVPixelBufferPixelFormatTypeKey     : [NSNumber numberWithInt:kCVPixelFormatType_32ARGB]  //[NSNumber numberWithInt:kCVPixelFormatType_422YpCbCr8]
             };
 }
+
+//--------------------------------------------------------------
+- (NSDictionary *)pixelBufferAttributesYUV422
+{
+    // kCVPixelFormatType_32ARGB, kCVPixelFormatType_32BGRA, kCVPixelFormatType_422YpCbCr8
+    return @{
+             (NSString *)kCVPixelBufferOpenGLCompatibilityKey : [NSNumber numberWithBool:self.useTexture],
+             (NSString *)kCVPixelBufferPixelFormatTypeKey     : [NSNumber numberWithInt:kCVPixelFormatType_422YpCbCr8]
+             };
+}
+
 
 //--------------------------------------------------------------
 - (void)loadFilePath:(NSString *)filePath
@@ -150,10 +164,17 @@ int count = 0;
                                                            object:self.playerItem];
                 
                 if (self.theFutureIsNow) {
+                    NSLog(@"Load with the future is now");
                     [self.player replaceCurrentItemWithPlayerItem:self.playerItem];
 
                     // Create and attach video output. 10.8 Only!!!
-                    self.playerItemVideoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:[self pixelBufferAttributes]];
+                    if (self.isYUV422) {
+                        self.playerItemVideoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:[self pixelBufferAttributesYUV422]];
+                        NSLog(@"Init pixel buffer with YUV 422");
+                    } else {
+                        self.playerItemVideoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:[self pixelBufferAttributes]];
+                        NSLog(@"Init pixel buffer with ARGB32");
+                    }
                     [self.playerItemVideoOutput autorelease];
 					
                     if (self.playerItemVideoOutput) {

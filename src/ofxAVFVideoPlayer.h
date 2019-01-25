@@ -14,6 +14,28 @@
 #import "ofxAVFVideoRenderer.h"
 #endif
 
+/*
+ [ofBaseVideoPlayer]
+ virtual void                play() = 0;
+ virtual void                stop() = 0;
+ virtual float                 getWidth() const = 0;
+ virtual float                 getHeight() const = 0;
+ virtual bool                isPaused() const = 0;
+ virtual bool                isLoaded() const = 0;
+ virtual bool                isPlaying() const = 0;
+ 
+ [ofBaseVideo]
+ virtual bool isFrameNew() const =0;
+ virtual void close()=0;
+ virtual bool isInitialized() const=0;
+ virtual bool setPixelFormat(ofPixelFormat pixelFormat) = 0;
+ virtual ofPixelFormat getPixelFormat() const = 0;
+
+ [ofBaseHasPixels]
+ virtual ofPixels_<T> & getPixels()=0;
+ virtual const ofPixels_<T> & getPixels() const=0;
+ */
+
 class ofxAVFVideoPlayer  : public ofBaseVideoPlayer {
     
 public:
@@ -21,28 +43,31 @@ public:
     ofxAVFVideoPlayer();
     ~ofxAVFVideoPlayer();
     
-    bool                loadMovie(string path);
+    bool                load(string path) override;
+    bool                isInitialized() const override { return isLoaded(); }
     
     void                closeMovie();
-    void                close();
+    void                close() override;
     
     void                idleMovie();
-    void                update();
-    void                play();
-    void                stop();
+    void                update() override;
+    void                play() override;
+    void                stop() override;
     
     float               getAmplitude(int channel = 0);
     float               getAmplitudeAt(float pos, int channel = 0);
     float *             getAllAmplitudes();
     int                 getNumAmplitudes();
     
-    bool                isFrameNew(); //returns true if the frame has changed in this update cycle
+    bool                isFrameNew() const override; //returns true if the frame has changed in this update cycle
     
     // Returns openFrameworks compatible RGBA pixels.
     // Be aware of your current render mode.
     
-    unsigned char *     getPixels();
+    unsigned char *     getData();
     ofPixelsRef         getPixelsRef();
+    ofPixels&           getPixels() override;
+    const ofPixels&     getPixels() const override;
     
     // Returns openFrameworks compatible ofTexture pointer.
     // if decodeMode == OF_QTKIT_DECODE_PIXELS_ONLY,
@@ -51,13 +76,13 @@ public:
     ofTexture&          getTextureReference();
     
     bool                isLoading();
-    bool                isLoaded();
+    bool                isLoaded() const override;
     bool                shouldLoadAudio();
     void                setShouldLoadAudio(bool doLoadAudio);
     bool                isAudioLoaded();
     bool                errorLoading();
     
-    bool                isPlaying();
+    bool                isPlaying() const override;
     bool                getIsMovieDone();
     
     float               getPosition();
@@ -66,36 +91,40 @@ public:
     int                 getCurrentFrame();
     float               getDuration();
     int                 getTotalNumFrames();
-    bool                isPaused();
+    bool                isPaused() const override;
     float               getSpeed();
     ofLoopType          getLoopState();
     float               getVolume();
     
-    void                setPosition(float pct);
+    void                setPosition(float pct) override;
     void                setTime(float seconds);
     void                setPositionInSeconds(float seconds);
-    void                setFrame(int frame); // frame 0 = first frame...
+    void                setFrame(int frame) override; // frame 0 = first frame...
     void                setBalance(float balance);
-    void                setPaused(bool bPaused);
-    void                setSpeed(float speed);
-    void                setLoopState(ofLoopType state);
-    void                setVolume(float volume);
+    void                setPaused(bool bPaused) override;
+    void                setSpeed(float speed) override;
+    void                setLoopState(ofLoopType state) override;
+    void                setVolume(float volume) override;
     
     // ofxAVFVideoPlayer only supports OF_PIXELS_RGB and OF_PIXELS_RGBA.
-    bool                setPixelFormat(ofPixelFormat pixelFormat);
-    ofPixelFormat       getPixelFormat();
+    bool                setPixelFormat(ofPixelFormat pixelFormat) override;
+    ofPixelFormat       getPixelFormat() const override;
     
     void                draw(float x, float y, float w, float h);
     void                draw(float x, float y);
     
-    float               getWidth();
-    float               getHeight();
+    float               getWidth() const override;
+    float               getHeight() const override;
     
-    void                firstFrame();
-    void                nextFrame();
-    void                previousFrame();
+    void                firstFrame() override;
+    void                nextFrame() override;
+    void                previousFrame() override;
+    
+    void                setInternalPixelBufferAsYuv422(bool b);
+    bool                isInternalPixelBufferAsYuv422() const;
     
 protected:
+    bool bInternalPixelBufferAsYuv422;
     
     ofLoopType currentLoopState;
     

@@ -47,6 +47,7 @@
     BOOL _bAudioLoaded;
     BOOL _bPaused;
     BOOL _bMovieDone;
+    BOOL _bYUV422;
     
     // New school audio stuff
     NSMutableData *_amplitudes;
@@ -70,6 +71,7 @@
 @property (nonatomic, assign, readonly, getter = isAudioLoaded) BOOL bAudioLoaded;
 @property (nonatomic, assign, getter = isPaused, setter = setPaused:) BOOL bPaused;
 @property (nonatomic, assign, readonly, getter = isMovieDone) BOOL bMovieDone;
+@property (nonatomic, assign, getter = isYUV422, setter = setYUV422:) BOOL bYUV422;
 @property (nonatomic, assign, readonly) BOOL isPlaying;
 
 @property (nonatomic, assign) BOOL useAlpha;
