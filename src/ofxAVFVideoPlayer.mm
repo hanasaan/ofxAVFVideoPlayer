@@ -7,7 +7,6 @@
 //
 
 #include "ofxAVFVideoPlayer.h"
-#include "Poco/String.h"
 
 //--------------------------------------------------------------
 ofxAVFVideoPlayer::ofxAVFVideoPlayer()
@@ -53,9 +52,9 @@ bool ofxAVFVideoPlayer::load(string path)
 
     bTheFutureIsNow = moviePlayer.theFutureIsNow;
 
-    if (Poco::icompare(path.substr(0, 7), "http://")  == 0 ||
-        Poco::icompare(path.substr(0, 8), "https://") == 0 ||
-        Poco::icompare(path.substr(0, 7), "rtsp://")  == 0) {
+    if (path.find("http://")  == 0 ||
+        path.find("https://") == 0 ||
+        path.find("rtsp://")  == 0) {
         [moviePlayer loadURLPath:[NSString stringWithUTF8String:path.c_str()]];
     }
     else {
